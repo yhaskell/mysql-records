@@ -1,6 +1,8 @@
 import * as mysqlconn from 'mysql';
 import * as fs from 'fs';
 
+type Constructor<T> = { new (...args: any[]): T } | ((...args: any[]) => T) | Function;
+
 export class EmptyArrayError extends Error {
     constructor() { super("Cannot use $in with empty array"); }
 }
@@ -231,25 +233,27 @@ export class Model {
         return terms.join(" and ");
     }
     
-    static async find<T extends Model>(filter: any) : Promise<T[]> {
+    static find = async function <T extends Model>(this: Constructor<T>, filter: any): Promise<T[]> {
         var selector;
+        var self: any = <any> this;
         try {
-            selector = this.selector(filter);
+            selector = self.selector(filter);
         } catch (err) {
             if (err instanceof EmptyArrayError) return [];
             else throw err;
         }
-        var found = await this.prototype.__db__.connection.select<T>(this.prototype.__db__.tableName, `where ${selector}`, x => <T> new this().propagate(x));
+        var found: T[] = await self.prototype.__db__.connection.select(this.prototype.__db__.tableName, `where ${selector}`, x => (new self()).propagate(x));
         if (!found) return [];
         for (var i = 0; i < found.length; i++)
             await found[i].processLinks(); 
         
         return found;
-    }
+    }   
     
-    static async findOne<T extends Model>(filter: any) : Promise<T> {
+    static findOne = async function<T extends Model>(this: Constructor<T>, filter: any) : Promise<T> {
+        var self = <any>this;
         var selector = Object.keys(filter).map(key => (`${key} = ${DB.convert(filter[key])}`)).join(" and ");
-        var found = await this.prototype.__db__.connection.selectOne<T>(this.prototype.__db__.tableName, `where ${this.selector(filter)}`, x=><T>new this().propagate(x));
+        var found = await self.prototype.__db__.connection.selectOne(this.prototype.__db__.tableName, `where ${self.selector(filter)}`, x=>new self().propagate(x));
         if (found)
             await found.processLinks();
         return found;
@@ -272,12 +276,13 @@ export class Model {
         await this.processLinks();
     }
     
-    static get<T extends Model>(id: number): Promise<T> {
+    static get = function<T extends Model>(this: Constructor<T>, id: number): Promise<T> {
         var db = this.prototype.__db__;
         var pk = db.primaryKey; 
+        var self: any = this; 
         if (pk == null) return new Promise((t, f) => { f(new Error("This operation is not available for models without primary key")) });
         var filter = {}; filter[pk] = id;
-        return this.findOne<T>(filter);
+        return self.findOne(filter);
     }
     
     propagate(obj?: any) {
