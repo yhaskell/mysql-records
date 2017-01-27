@@ -1,0 +1,12 @@
+{
+  "name": "mysql-orm",
+  "version": "1.0.0",
+  "description": "Simple MySQL ORM",
+  "main": "index.js",
+  "repository": {
+    "url": "https://gitlab.com/yhaskell/mysql-orm.git",
+    "type": "git"
+  },
+  "author": "Igor N. Dultsev <yhaskell@live.com>",
+  "license": "MIT"
+}
