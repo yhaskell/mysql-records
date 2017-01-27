@@ -1,12 +1,18 @@
 {
   "name": "mysql-orm",
-  "version": "1.0.0",
+  "version": "0.4.0",
   "description": "Simple MySQL ORM",
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "repository": {
     "url": "https://gitlab.com/yhaskell/mysql-orm.git",
     "type": "git"
   },
   "author": "Igor N. Dultsev <yhaskell@live.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@types/mysql": "^0.0.31",
+    "@types/node": "^7.0.4",
+    "mysql": "^2.13.0"
+  }
 }
