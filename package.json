@@ -1,6 +1,6 @@
 {
   "name": "mysql-records",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Simple MySQL ORM",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
