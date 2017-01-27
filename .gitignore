@@ -5,3 +5,4 @@
 /**/*.d.ts
 
 /yarn.lock
+/npm-debug.log
