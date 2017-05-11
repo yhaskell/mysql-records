@@ -205,12 +205,14 @@ export class Model {
         }
     }
     
-    
-    static all<T extends Model>(): Promise<T[]>  {
-        return this.prototype.__db__.connection.select(this.prototype.__db__.tableName, '', x => new this().propagate(x));
+    static all = async function <T extends Model>(this: Constructor<T>): Promise<T[]> {
+        let self = <any>this;
+        return self.prototype.__db__.connection.select(this.prototype.__db__.tableName, '', x => new self().propagate(x));
     }
+
     
-    private static selector(filter: any) {
+
+    private static selector<T>(filter: Filter<T>) {
         var terms = [];
         
         var operations = { 
@@ -240,7 +242,7 @@ export class Model {
         return terms.join(" and ");
     }
     
-    static find = async function <T extends Model>(this: Constructor<T>, filter: any): Promise<T[]> {
+    static find = async function <T extends Model>(this: Constructor<T>, filter: Filter<T>): Promise<T[]> {
         var selector;
         var self: any = <any> this;
         try {
@@ -257,7 +259,7 @@ export class Model {
         return found;
     }   
     
-    static findOne = async function<T extends Model>(this: Constructor<T>, filter: any) : Promise<T> {
+    static findOne = async function<T extends Model>(this: Constructor<T>, filter: Filter<T>) : Promise<T> {
         var self = <any>this;
         var selector = Object.keys(filter).map(key => (`${key} = ${DB.convert(filter[key])}`)).join(" and ");
         var found = await self.prototype.__db__.connection.selectOne(this.prototype.__db__.tableName, `where ${self.selector(filter)}`, x=>new self().propagate(x));
@@ -284,7 +286,7 @@ export class Model {
     static get = function<T extends Model>(this: Constructor<T>, id: number): Promise<T> {
         var db = this.prototype.__db__;
         var pk = db.primaryKey; 
-        var self: any = this; 
+        var self: any = this;
         if (pk == null) return new Promise((t, f) => { f(new Error("This operation is not available for models without primary key")) });
         var filter = {}; filter[pk] = id;
         return self.findOne(filter);
@@ -307,10 +309,11 @@ export class Model {
         return conn.delete(tbl, `\`${pk}\` = ${this[pk]}`);
     }
     
-    static remove(filter: any) {
-        var db = this.prototype.__db__;
+    static remove = function<T extends Model>(this: Constructor<T>, filter: Filter<T>) {
+        var self = <any> this
         
-        var selector = this.selector(filter);
+        var db = self.prototype.__db__;
+        var selector = self.selector(filter);
 
         return db.connection.delete(db.tableName, selector);
     }
