@@ -49,7 +49,7 @@ export class DB {
             
             this.log.push(query);
             this.rotate(true, false);
-            if (this.debugSQL) console.log("[DEBUG] ", query);
+            if (this.debugSQL) console.trace("[DEBUG] ", query);
             this.connection.query(query, (err, result) => {
                 if (err) {
                     this.errorLog.push(err);
@@ -147,14 +147,14 @@ export class DB {
 
 }
 
-export function connect(host: string, user: string, password: string, db: string) {
+export function connect(host: string, user: string, password: string, db: string, config?: { sqlDebug?: boolean; }) {
     var pool = mysqlconn.createPool({
         host     : host,
         user     : user,
         password : password,
         database : db
     });
-    return new DB(pool);
+    return new DB(pool, config);
 }
 
 class ConnectionInfo {
