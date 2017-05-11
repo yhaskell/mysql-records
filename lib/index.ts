@@ -182,6 +182,8 @@ class ConnectionLink {
     }
 }
 
+const keysToNullSymbol = Symbol.for("mysql-records:model:key2null")
+
 export class Model {
     
     private __db__: ConnectionInfo;
@@ -191,6 +193,8 @@ export class Model {
         if (!this.__db__) throw new Error('Use @model decorator to specify DB-specific information such as DB connection and table name');
         if (this.__db__.links) this.__db__.links.forEach(link => link.test());
         
+        this[keysToNullSymbol] = []
+
         this.propagate(obj);
     }
     
@@ -262,20 +266,18 @@ export class Model {
         return found;
     }
     
-    private key2null: string[] = [];
 
-    setNull(key: string) { this.key2null.push(key); }
+    setNull(key: string) { if (!this[keysToNullSymbol]) this[keysToNullSymbol] = []; this[keysToNullSymbol].push(key); }
 
     public async save() {
-        var db = this.__db__, pk = db.primaryKey, conn = db.connection, tbl = db.tableName, key2null = this.key2null;
-        delete this.key2null;
-        if (pk && this[pk]) 
+        var db = this.__db__, pk = db.primaryKey, conn = db.connection, tbl = db.tableName, key2null = this[keysToNullSymbol];
+        if (pk && this[pk] !== null && this[pk] !== undefined) 
             await conn.update(tbl, this, key2null, `${pk} = "${this[pk]}"`, [pk].concat(this.__db__.links.map(link=>link.property)));
         else {
             for (var key of key2null) delete this[key];
             this[pk] = await conn.insert(tbl, this);
         }
-        this.key2null = [];
+        this[keysToNullSymbol] = [];
         await this.processLinks();
     }
     
