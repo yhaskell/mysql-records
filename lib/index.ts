@@ -166,6 +166,9 @@ class ConnectionInfo {
     public links: ConnectionLink[];
 }
 
+export type Filter<T> = { [K in keyof T]?: FilterSelector<T[K], T> };
+export type FilterSelector<K, T> = K | { $gt: K; $lt: K; $gte: K; $lte: K; $ne: K; $in: K[]; }
+
 class ConnectionLink {
     constructor(public foreignKey: string, public destination: Function, public source: any, public property: string) {}
     
