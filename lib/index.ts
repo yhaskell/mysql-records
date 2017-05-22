@@ -154,7 +154,16 @@ export function connect(host: string, user: string, password: string, db: string
         password : password,
         database : db
     });
-    return new DB(pool, config);
+    if (!!config && !!config.sqlDebug) {
+        return new DB({
+            query: (query: string, ...args) => {
+                console.log("[DEBUG]: query = " + query)
+                console.log("[DEBUG]: args  = ", args)
+                return pool.query(query)
+            }
+        }, config)
+     } else 
+        return new DB(pool, config);
 }
 
 class ConnectionInfo {
